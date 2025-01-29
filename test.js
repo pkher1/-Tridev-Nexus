@@ -1,13 +1,29 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const { getNextScreen } = require("./flow.js");
-const crypto = require("crypto");
-const fs = require("fs");
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const { getNextScreen } = require("./flow.js");
+// const crypto = require("crypto");
+// const fs = require("fs");
+
+import express from 'express';
+import bodyParser from 'body-parser';
+import getNextScreen  from './flow.js';
+import crypto from 'crypto';
+import fs from 'fs';
 
 const PORT = 3000;
 const app = express();
-const APP_SECRET = 'ce43b271bbb93da9d1a42506ae72b403';
+const APP_SECRET = "ce43b271bbb93da9d1a42506ae72b403";
+const WEBHOOK_VERIFY_TOKEN = "zxcvasdf123";
 // app.use(express.json());
+
+// Define FlowEndpointException early in the code
+export class FlowEndpointException extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.name = this.constructor.name;
+    this.statusCode = statusCode;
+  }
+}
 
 app.use(
   express.json({
@@ -24,45 +40,129 @@ const PRIVATE_KEY = crypto.createPrivateKey({
   passphrase: "qwer",
 });
 
-// const PRIVATE_KEY = `-----BEGIN RSA PRIVATE KEY-----
-// Proc-Type: 4,ENCRYPTED
-// DEK-Info: DES-EDE3-CBC,0089550262375C94
+// accepts GET requests at the /webhook endpoint. You need this URL to setup webhook initially.
+// info on verification request payload: https://developers.facebook.com/docs/graph-api/webhooks/getting-started#verification-requests
+app.get("/webhook", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
 
-// gpdQ4TQcpfj7AbKq2Z2nwU9bhGFDj1haYJITsntic4vVZ+7qpzT153XQdK3x6gTX
-// 0sz3YMHZCLX5sAGGHWqng4UydKbwIs3LkGen/z07gL/16zBWAt8p48OwVQdF+TPS
-// 8AGAL0xK3aPssr8WhtSAuI9DYCQWKkWiMbNpnzh8exLZ3hPVXFhQIbeKm9lA2p8U
-// o+TM1m5cQslygOZlQn1PTRoPOrlyIwQSA8fluAA8dE5iAE3UOd6UT1nig3q9wRDr
-// zXCiZyAZYfGfC0AWSVsOXUHzWKET0jnpe5UFY/yAdVsBxmzPkZ2iXzGA9hjNyJUS
-// ZlX6GAHooK2GebDIUN0UuHRBdA187CPVTl57KZhsqojp1up6O1uJe/p8lamHUwN8
-// 7+9In0NuyIFP2GT1Esvo2QGlXRsnZIQePU3TTaLYnbJBJcr/NW7qmEG3jOT2JE4X
-// VQ/Cne0mYQU/XJAodzEbrSR3IYBIZMpVgZPut46lXTsutYe7qfSAlzBYNLPFEjMY
-// Q/fS5jk7bIJWMj82cW4WXUuT/n1V9UqnK6qIUOIuCSHbd+VBFHH1sPQ4RCYNFAkU
-// Nqd+QXYsml95fO/nsnrmJp4P/wRv/MXok2xOv6KvVlpFgRmSW86HIJQyqPYQDUcP
-// +56ijxbTvBe9KDbpLTMgZh1+HxAMTS6tMzjFl5sihHVFMjNUhfLrMqcjyRncnQ4m
-// dG+WGaCbesGUEtEgDk3lPFb6P/7QYdZkSBamQFXwExUhEbiUL+txO9bJgyhbgf0e
-// rsKtcKn2YHjBZROJBRfNqlpDOFrcqWdXC1QcCmLzdEe/OV2HTbhU1hJb5AuDkGr1
-// pyuaMhuvtsCVC7lp1F00YVQnHPyEKu8mGAPNSXCYjbJfxHHBmz/MLTtjPJ/t+eZG
-// VOcF3QjwMUASUAD8jklKPxXksByAt9pFPV+q4IcPuYT0qeyklVHclmg7mi22Ghgj
-// vJfG9DoB7rtwRKMSCStlL8juabyZxQQY1d66M9FnTrH0do3GYKg0xYgSzVgvJ6gB
-// F++vxgjS2mmrin00Ms+ikbB2OzqX87GrL1wUpW3p3MYN04Bugx3FSjugboY9m7YE
-// 9FO+uIutxl+BMK7GP6HArppoMc+im59/Z3UJcjASeYoZDxTsWj3omDDqx+NKLDPA
-// sqmQryKMQONNdkM42GjIN1FgzoGQXCGSGosNFlLZpecAnSmN+c8HZuKYFqweSjBB
-// +hGIEMZ4K/LdaCPR/XhE/RNhUv/AXMsklnjdcVMXcq3zuKCzX+TFgZEbEj1G+IUn
-// Os5XeYID79YqqtKXdr1cly+zkwezd7gM4CqhBT9z2tFrQQO0IOxPwl0nxBe2z3Aj
-// 257HeGBpPGGxfg2M6N5I9vhbuOFhbHtKLnz4QuocgWN2Mmr79AxvguPN4p1OB1Lr
-// UOKXrdeLMmQjdRCWDSSQWjtWSmkzBXyUHcBLYspcSkktFNNieBvGd7gGZxW10adW
-// JFo3aqiDAz+DpGTme0M8VSWb81EM/CpdHIl/FsT07UTMvXTk2x0BS7kPiheWhLeQ
-// HoWQROaU+gS8R4sSrDViN6poKEx4bK5J+HJJaVgvtBaM71c1W2sW7eqCrcJ3s+O4
-// -----END RSA PRIVATE KEY-----`;
+  // check the mode and token sent are correct
+  if (mode === "subscribe" && token === WEBHOOK_VERIFY_TOKEN) {
+    // respond with 200 OK and challenge token from the request
+    res.status(200).send(challenge);
+    console.log("Webhook verified successfully!");
+  } else {
+    // respond with '403 Forbidden' if verify tokens do not match
+    res.sendStatus(403);
+  }
+});
 
-/* 
-Example:
-```-----BEGIN RSA PRIVATE KEY-----
-MIIE...
-...
-...AQAB
------END RSA PRIVATE KEY-----```
-*/
+// const axios = require('axios');
+
+// // Webhook handler to process incoming messages
+// const handleWebhook = async (req, res) => {
+//   try {
+//     const webhookPayload = req.body;
+//     console.log("Received Webhook Payload:", webhookPayload);
+
+//     // Check if the webhook contains the expected structure
+//     if (webhookPayload.messages && webhookPayload.messages.length > 0) {
+//       const messageData = webhookPayload.messages[0];
+//       const responseJson = JSON.parse(messageData.interactive.nfm_reply.response_json);
+
+//       const { flow_token, optional_param1, optional_param2 } = responseJson;
+
+//       // Process the flow token and optional parameters
+//       console.log("Flow Token:", flow_token);
+//       console.log("Optional Params:", optional_param1, optional_param2);
+
+//       // Send a summary message to WhatsApp (you can modify this to send any desired message)
+//       const summaryMessage = `
+//         Flow completed successfully!
+//         Flow Token: ${flow_token}
+//         Optional Param 1: ${optional_param1}
+//         Optional Param 2: ${optional_param2}
+//       `;
+
+//       // Manually trigger the summary message
+//       await sendWhatsAppMessage(messageData.context.from, summaryMessage);
+
+//       // Respond with a success message
+//       res.status(200).json({ message: "Webhook processed successfully" });
+//     } else {
+//       throw new Error("Invalid webhook payload");
+//     }
+//   } catch (error) {
+//     console.error("Error processing webhook:", error);
+//     res.status(500).json({ message: "Error processing webhook", error: error.message });
+//   }
+// };
+
+// // Function to send a WhatsApp message (manually triggered)
+// const sendWhatsAppMessage = async (to, message) => {
+//   try {
+//     const whatsappApiUrl = "<YOUR_WHATSAPP_API_URL>"; // Replace with the WhatsApp API URL
+//     const apiKey = "<YOUR_API_KEY>"; // Replace with your API key
+
+//     const payload = {
+//       to,
+//       message,
+//       type: "text", // Assuming text message type for simplicity
+//     };
+
+//     const headers = {
+//       Authorization: `Bearer ${apiKey}`,
+//     };
+
+//     const response = await axios.post(whatsappApiUrl, payload, { headers });
+
+//     if (response.status === 200) {
+//       console.log("Message sent to WhatsApp successfully!");
+//     } else {
+//       throw new Error("Failed to send WhatsApp message");
+//     }
+//   } catch (error) {
+//     console.error("Error sending WhatsApp message:", error);
+//   }
+// };
+
+// // Mocking a test to trigger the webhook handler
+// const testWebhook = async () => {
+//   const mockWebhookPayload = {
+//     messages: [{
+//       context: {
+//         from: "16315558151",
+//         id: "gBGGEiRVVgBPAgm7FUgc73noXjo"
+//       },
+//       from: "<USER_ACCOUNT_NUMBER>",
+//       id: "<MESSAGE_ID>",
+//       type: "interactive",
+//       interactive: {
+//         type: "nfm_reply",
+//         nfm_reply: {
+//           name: "flow",
+//           body: "Sent",
+//           response_json: "{\"flow_token\": \"<FLOW_TOKEN>\", \"optional_param1\": \"<value1>\", \"optional_param2\": \"<value2>\"}"
+//         }
+//       },
+//       timestamp: "<MESSAGE_SEND_TIMESTAMP>"
+//     }]
+//   };
+
+//   // Simulate webhook request processing
+//   await handleWebhook({ body: mockWebhookPayload }, {
+//     status: (statusCode) => {
+//       console.log(`Status Code: ${statusCode}`);
+//       return { json: (message) => console.log(message) };
+//     }
+//   });
+// };
+
+// // Run the test (you can comment this out in production)
+// testWebhook();
+
+// module.exports = { handleWebhook, sendWhatsAppMessage };
 
 app.post("/webhook", async ({ body }, res) => {
   console.log("Incoming Request Body:", body);
@@ -73,10 +173,55 @@ app.post("/webhook", async ({ body }, res) => {
     );
   }
 
-//   if (!isRequestSignatureValid(body)) {
-//     // Return status code 432 if request signature does not match.
-//     // To learn more about return error codes visit: https://developers.facebook.com/docs/whatsapp/flows/reference/error-codes#endpoint_error_codes
-//     return res.status(432).send();
+  //   if (!isRequestSignatureValid(body)) {
+  //     // Return status code 432 if request signature does not match.
+  //     // To learn more about return error codes visit: https://developers.facebook.com/docs/whatsapp/flows/reference/error-codes#endpoint_error_codes
+  //     return res.status(432).send();
+  //   }
+
+  if (body.entry && body.entry[0] && body.entry[0].changes) {
+    // Process status change or other event
+    const eventChanges = body.entry[0].changes;
+    eventChanges.forEach((change) => {
+      console.log("Change detected:", change);
+      // Handle flow status change or message status change here
+    });
+
+    // Respond to webhook request
+    res.status(200).send("Event received successfully.");
+  }
+
+  const payload = body;
+  
+
+//   if (payload.messages) {
+//     payload.messages.forEach(async (message) => {
+//       console.log("====================================");
+//       console.log(message);
+//       console.log("====================================");
+//       if (
+//         message.type === "interactive" &&
+//         message.interactive?.type === "nfm_reply"
+//       ) {
+//         const flowToken = JSON.parse(
+//           message.interactive.nfm_reply.response_json
+//         ).flow_token;
+//         const userNumber = message.from;
+
+//         // Respond to data exchange
+//         // const flowResponse = triggerFlowCompletion(flowToken, {
+//         //   optional_param1: "value1",
+//         //   optional_param2: "value2"
+//         // });
+//         // res.status(200).send(flowResponse);
+
+//         // // Send summary message
+//         // const summaryMessage = "Thank you for completing the flow! We will get back to you shortly.";
+//         // await sendSummaryMessage(userNumber, summaryMessage);
+//       }
+//     });
+//   } else {
+//     res.status(400).send("No messages in webhook payload");
 //   }
 
   let decryptedRequest = null;
@@ -112,169 +257,18 @@ app.post("/webhook", async ({ body }, res) => {
 
   const screenResponse = await getNextScreen(decryptedBody);
   console.log("👉 Response to Encrypt:", screenResponse);
-
-  //   const { decryptedBody, aesKeyBuffer, initialVectorBuffer } = decryptRequest(
-  //     body,
-  //     PRIVATE_KEY,
-  //   );
-  //   console.log("decryptedBody-------->>>:", decryptedBody);
-
-  //   const { screen, data, version, action } = decryptedBody;
-
-  //   const screenData = {
-  //     screen: "SCREEN_NAME",
-  //     data: {
-  //       some_key: "some_value",
-  //     },
-  //   };
-  // handle health check request
-  //   if (action === "ping") {
-  //     return {
-  //       data: {
-  //         status: "active",
-  //       },
-  //     };
-  //   }
-
-  // handle initial request when opening the flow
-  // if (action === "INIT") {
-  //     return {
-  //       screen: "RECOMMEND",
-  //       title: "Feedback 1 of 2",
-  //       data: {},
-  //       layout: {
-  //           "type": "SingleColumnLayout",
-  //           "children": [
-  //             {
-  //               "type": "Form",
-  //               "name": "form",
-  //               "children": [
-  //                 {
-  //                   "type": "TextSubheading",
-  //                   "text": "Would you recommend us to a friend?"
-  //                 },
-  //                 {
-  //                   "type": "RadioButtonsGroup",
-  //                   "label": "Choose one",
-  //                   "name": "Choose_one",
-  //                   "data-source": [
-  //                     {
-  //                       "id": "0_Yes",
-  //                       "title": "Yes"
-  //                     },
-  //                     {
-  //                       "id": "1_No",
-  //                       "title": "No"
-  //                     }
-  //                   ],
-  //                   "required": true
-  //                 },
-  //                 {
-  //                   "type": "TextSubheading",
-  //                   "text": "How could we do better?"
-  //                 },
-  //                 {
-  //                   "type": "TextArea",
-  //                   "label": "Leave a comment",
-  //                   "required": false,
-  //                   "name": "Leave_a_comment"
-  //                 },
-  //                 {
-  //                   "type": "Footer",
-  //                   "label": "Continue",
-  //                   "on-click-action": {
-  //                     "name": "navigate",
-  //                     "next": {
-  //                       "type": "screen",
-  //                       "name": "RATE"
-  //                     },
-  //                     "payload": {
-  //                       "screen_0_Choose_one_0": "${form.Choose_one}",
-  //                       "screen_0_Leave_a_comment_1": "${form.Leave_a_comment}"
-  //                     }
-  //                   }
-  //                 }
-  //               ]
-  //             }
-  //           ]
-  //         }
-  //     };
-  //   }
-
-  //   initBody = {
-  //     "screen": "RECOMMEND",
-  //     "id": "RECOMMEND",
-  //     "title": "Feedback 1 of 2",
-  //     "data": {},
-  //     "layout": {
-  //       "type": "SingleColumnLayout",
-  //       "children": [
-  //         {
-  //           "type": "Form",
-  //           "name": "form",
-  //           "children": [
-  //             {
-  //               "type": "TextSubheading",
-  //               "text": "Would you recommend us to a friend?"
-  //             },
-  //             {
-  //               "type": "RadioButtonsGroup",
-  //               "label": "Choose one",
-  //               "name": "Choose_one",
-  //               "data-source": [
-  //                 {
-  //                   "id": "0_Yes",
-  //                   "title": "Yes"
-  //                 },
-  //                 {
-  //                   "id": "1_No",
-  //                   "title": "No"
-  //                 }
-  //               ],
-  //               "required": true
-  //             },
-  //             {
-  //               "type": "TextSubheading",
-  //               "text": "How could we do better?"
-  //             },
-  //             {
-  //               "type": "TextArea",
-  //               "label": "Leave a comment",
-  //               "required": false,
-  //               "name": "Leave_a_comment"
-  //             },
-  //             {
-  //               "type": "Footer",
-  //               "label": "Continue",
-  //               "on-click-action": {
-  //                 "name": "navigate",
-  //                 "next": {
-  //                   "type": "screen",
-  //                   "name": "RATE"
-  //                 },
-  //                 "payload": {
-  //                   "screen_0_Choose_one_0": "${form.Choose_one}",
-  //                   "screen_0_Leave_a_comment_1": "${form.Leave_a_comment}"
-  //                 }
-  //               }
-  //             }
-  //           ]
-  //         }
-  //       ]
-  //     }
-  //   }
-
-  //   Return the next screen & data to the client
-
-  // resultBody ={"data": {"status": "active"}}
-  // Return the response as plaintext
   res.send(encryptResponse(screenResponse, aesKeyBuffer, initialVectorBuffer));
 });
 
 const decryptRequest = (body, privateKey) => {
   const { encrypted_aes_key, encrypted_flow_data, initial_vector } = body;
 
-//   const privateKey = crypto.createPrivateKey({ key: privateKey });
+  if (!encrypted_aes_key || !encrypted_flow_data || !initial_vector) {
+    throw new FlowEndpointException(
+      400,
+      "Missing required encryption fields in request body"
+    );
+  }
   let decryptedAesKey = null;
   try {
     // decrypt AES key created by client
@@ -297,16 +291,6 @@ const decryptRequest = (body, privateKey) => {
       "Failed to decrypt the request. Please verify your private key."
     );
   }
-
-  // // Decrypt the AES key created by the client
-  // const decryptedAesKey = crypto.privateDecrypt(
-  //   {
-  //     key: privateKey,
-  //     padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-  //     oaepHash: "sha256",
-  //   },
-  //   Buffer.from(encrypted_aes_key, "base64")
-  // );
 
   // Decrypt the Flow data
   const flowDataBuffer = Buffer.from(encrypted_flow_data, "base64");
@@ -354,20 +338,10 @@ const encryptResponse = (response, aesKeyBuffer, initialVectorBuffer) => {
   ]).toString("base64");
 };
 
-
-module.exports.FlowEndpointException = class FlowEndpointException extends Error {
-  constructor(statusCode, message) {
-    super(message);
-
-    this.name = this.constructor.name;
-    this.statusCode = statusCode;
-  }
-};
-
-// app.get("/", (req, res) => {
-//     res.send(`<pre>Nothing to see here.
-//   Checkout README.md to start.</pre>`);
-//   });
+app.get("/", (req, res) => {
+  res.send(`<pre>Nothing to see here.
+  Checkout README.md to start.</pre>`);
+});
 
 app.listen(PORT, () => {
   console.log(`App is listening on port ${PORT}!`);
