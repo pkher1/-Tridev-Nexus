@@ -1,9 +1,3 @@
-// const express = require("express");
-// const bodyParser = require("body-parser");
-// const { getNextScreen } = require("./flow.js");
-// const crypto = require("crypto");
-// const fs = require("fs");
-
 import express from 'express';
 import bodyParser from 'body-parser';
 import getNextScreen  from './flow.js';
@@ -11,12 +5,15 @@ import crypto from 'crypto';
 import fs from 'fs';
 import fetch from 'node-fetch';
 import ZohoAPIClient from './zoho.js';
+import dotenv from 'dotenv';
 
-const PORT = 3000;
+dotenv.config();
+
+const PORT = process.env.PORT || 3000;
 const app = express();
-const APP_SECRET = "ce43b271bbb93da9d1a42506ae72b403";
-const WEBHOOK_VERIFY_TOKEN = "zxcvasdf123";
-const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || "EAAGTLPz6kJABO7BZCzcfbVbO0AgGVxsSsZBoK20GL5t2SQCrSMHbYnzTe5daU6ZA6r6HINudZBgSijJthRV7TU0vkYMPLRgHYkV8Q8ZCIgTAmC5fpo5ZAwjHzrG4xZBAW8hc6jbK1NnhATPHozMM5SIVxz0Szx3jZBbzc4ROnGResFTThbKs6blLISrCb2UFohwXigZDZD";
+const APP_SECRET = process.env.APP_SECRET;
+const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
+const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 // app.use(express.json());
 
 // Define FlowEndpointException early in the code
@@ -40,7 +37,7 @@ app.use(
 // Load private key
 const PRIVATE_KEY = crypto.createPrivateKey({
   key: fs.readFileSync("private.pem"),
-  passphrase: "qwer",
+  passphrase: process.env.PRIVATE_KEY_PASSPHRASE,
 });
 
 // accepts GET requests at the /webhook endpoint. You need this URL to setup webhook initially.
