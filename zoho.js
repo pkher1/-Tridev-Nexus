@@ -2,17 +2,20 @@ import axios from "axios";
 import NodeCache from "node-cache";
 import axiosRetry from "axios-retry";
 import { format, parse } from "date-fns";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const cache = new NodeCache({ stdTTL: 3600 }); // Token cached for 1 hour
 
-const ZOHO_ACCESS_TOKEN = "1000.d2a700c9eb53e7f40b978d15ee71d4e3.baf0f76b022cfcbd0fb6bb2895f0b09b"; // Optional, not used initially
-const ZOHO_BASE_API_URL = "https://www.zohoapis.com";
-const ZOHO_BASE_AUTH_URL = "https://accounts.zoho.com";
-const ZOHO_CLIENT_ID = "1000.G6VFOBZA2XLTYFS85D5LL64EKQ23JJ";
-const ZOHO_CLIENT_SECRET = "2b31b164b8085c1d157188a45a52772cdb5cee16bd";
-const ZOHO_GRANT_TOKEN = "1000.84fd4711f371367523aa1a626b2f75fa.b5c352dcdb4c96c7d42f7add1060bd09";
-const ZOHO_REFRESH_TOKEN = "1000.5de9f1f1d7b3c3379e5abf9fb0fa6bcb.cd9ed095bdad96cf2cef3f10a87dd9c6";
-const ZOHO_MODULE = "Buy_Lead";
+const ZOHO_ACCESS_TOKEN = process.env.ZOHO_ACCESS_TOKEN; // Optional, not used initially
+const ZOHO_BASE_API_URL = process.env.ZOHO_BASE_API_URL;
+const ZOHO_BASE_AUTH_URL = process.env.ZOHO_BASE_AUTH_URL;
+const ZOHO_CLIENT_ID = process.env.ZOHO_CLIENT_ID;
+const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET;
+const ZOHO_GRANT_TOKEN = process.env.ZOHO_GRANT_TOKEN;
+const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
+const ZOHO_MODULE = process.env.ZOHO_MODULE;
 
 // Configure axios retry
 axiosRetry(axios, { retries: 3, retryCondition: axiosRetry.isRetryableError });
