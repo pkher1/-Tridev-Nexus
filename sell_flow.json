@@ -20,32 +20,50 @@
             "name": "flow_path",
             "children": [
               {
+                "type": "TextSubheading",
+                "text": "Please enter your name"
+              },
+              {
                 "type": "TextInput",
-                "label": "First Name",
+                "label": "Name",
                 "name": "First_Name_78060d",
                 "required": true,
                 "input-type": "text"
               },
               {
-                "type": "TextInput",
-                "label": "Last Name",
-                "name": "Last_Name_c71405",
-                "required": true,
-                "input-type": "text"
-              },
-              {
-                "type": "TextInput",
-                "label": "Phone Number",
-                "name": "Phone_Number_74f5cc",
-                "required": true,
-                "input-type": "phone"
+                "type": "TextSubheading",
+                "text": "Enter your pincode"
               },
               {
                 "type": "TextInput",
                 "label": "Pincode",
                 "name": "Pincode_ad5cdd",
                 "required": true,
-                "input-type": "number"
+                "input-type": "number",
+                "max-chars": 6,
+                "min-chars":6
+              },
+              {
+                "type": "TextSubheading",
+                "text": "Enter your registration no"
+              },
+              {
+                "type": "TextInput",
+                "name": "Registration_Number_949044",
+                "label": "Reg No.",
+                "required": true,
+                "input-type": "text"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "Brand of your two wheeler"
+              },
+              {
+                "type": "TextInput",
+                "label": "Brand",
+                "name": "Brand",
+                "required": true,
+                "input-type": "text"
               },
               {
                 "type": "Footer",
@@ -58,8 +76,8 @@
                   },
                   "payload": {
                     "screen_0_First_Name_0": "${form.First_Name_78060d}",
-                    "screen_0_Last_Name_1": "${form.Last_Name_c71405}",
-                    "screen_0_Phone_Number_2": "${form.Phone_Number_74f5cc}",
+                    "screen_0_Registration_Number_3": "${form.Registration_Number_949044}",
+                    "screen_0_Brand_4": "${form.Brand}",
                     "screen_0_Pincode_3": "${form.Pincode_ad5cdd}"
                   }
                 }
@@ -77,11 +95,11 @@
           "type": "string",
           "__example__": "Example"
         },
-        "screen_0_Last_Name_1": {
+        "screen_0_Registration_Number_3": {
           "type": "string",
           "__example__": "Example"
         },
-        "screen_0_Phone_Number_2": {
+        "screen_0_Brand_4": {
           "type": "string",
           "__example__": "Example"
         },
@@ -99,11 +117,19 @@
             "name": "flow_path",
             "children": [
               {
+                "type": "TextSubheading",
+                "text": "Enter the year of your two-wheeler"
+              },
+              {
                 "type": "TextInput",
-                "name": "Registration_Number_949044",
-                "label": "Registration Number",
+                "label": "Manufacturing Year",
+                "name": "MFY",
                 "required": true,
                 "input-type": "text"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "Select the KMs Driven"
               },
               {
                 "type": "Dropdown",
@@ -142,24 +168,8 @@
                 ]
               },
               {
-                "type": "Dropdown",
-                "label": "Ownerships",
-                "required": true,
-                "name": "Ownerships_fea0b0",
-                "data-source": [
-                  {
-                    "id": "0_1st_Owner",
-                    "title": "1st Owner"
-                  },
-                  {
-                    "id": "1_2nd_Owner",
-                    "title": "2nd Owner"
-                  },
-                  {
-                    "id": "2_3rd_Owner",
-                    "title": "3rd Owner"
-                  }
-                ]
+                "type": "TextSubheading",
+                "text": "Select your preffered date for home inspection"
               },
               {
                 "type": "DatePicker",
@@ -168,18 +178,42 @@
                 "name": "Select_Date_104aad"
               },
               {
+                        "text":"Choose a time slot",
+                        "type":"TextSubheading"
+                     },
+                     {
+                        "data-source":[
+                           {
+                              "id":"0_Morning",
+                              "title":"Morning"
+                           },
+                           {
+                              "id":"1_Afrwenoon",
+                              "title":"Afrwenoon"
+                           },
+                           {
+                              "id":"2_Evening",
+                              "title":"Evening"
+                           }
+                        ],
+                        "label":"Choose a time slot",
+                        "name":"Choose_a_time_slot_85a2d3",
+                        "required":true,
+                        "type":"Dropdown"
+                     },
+              {
                 "type": "Footer",
                 "label": "Submit",
                 "on-click-action": {
-                  "name": "complete",
+                  "name": "data_exchange",
                   "payload": {
-                    "screen_1_Registration_Number_0": "${form.Registration_Number_949044}",
+                    "screen_1_MFY_0": "${form.MFY}",
                     "screen_1_Kms_Driven_1": "${form.Kms_Driven_0a59bd}",
-                    "screen_1_Ownerships_2": "${form.Ownerships_fea0b0}",
+                    "screen_1_Time_Slot_4": "${form.Choose_a_time_slot_85a2d3}",
                     "screen_1_Select_Date_3": "${form.Select_Date_104aad}",
                     "screen_0_First_Name_0": "${data.screen_0_First_Name_0}",
-                    "screen_0_Last_Name_1": "${data.screen_0_Last_Name_1}",
-                    "screen_0_Phone_Number_2": "${data.screen_0_Phone_Number_2}",
+                    "screen_0_Registration_Number_3": "${data.screen_0_Registration_Number_3}",
+                    "screen_0_Brand_4": "${data.Brand}",
                     "screen_0_Pincode_3": "${data.screen_0_Pincode_3}"
                   }
                 }

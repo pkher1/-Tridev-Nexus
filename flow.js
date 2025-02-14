@@ -1,208 +1,3 @@
-// import * as ZOHOCRMSDK from "@zohocrm/nodejs-sdk-2.0";
-
-// const { USDataCenter, InitializeBuilder } = require("@zohocrm/nodejs-sdk");
-
-// import { USDataCenter, InitializeBuilder } from "@zohocrm/nodejs-sdk";
-
-// async function initializeZohoCRM() {
-//     const config = new InitializeBuilder()
-//         .clientId("1000.BPPYY4E0MHWL1B0Y0B02Q6MG4QQKTD")
-//         .clientSecret("9e644de8b147ecb57ac1e1d8f1d2142fb956e68a6c")
-//         .refreshToken(
-//           "1000.6b6a7a08987882ee320812d03b07aed6.6c47052b94a6335445ea43c96f2e3b4c"
-//         )
-//         // .redirectURL("YOUR_REDIRECT_URL")
-//         .environment(USDataCenter.PRODUCTION())
-//         .build();
-
-//     await config.initialize();
-// }
-
-// import ZohoCRM from "@zohocrm/nodejs-sdk";
-// const { USDataCenter, InitializeBuilder } = ZohoCRM;
-
-// async function initializeZohoCRM() {
-//   try {
-//       const builderInstance = new InitializeBuilder()
-//           .environment(USDataCenter.PRODUCTION())
-//           .clientId("1000.BPPYY4E0MHWL1B0Y0B02Q6MG4QQKTD")
-//           .clientSecret("9e644de8b147ecb57ac1e1d8f1d2142fb956e68a6c")
-//           .refreshToken("1000.6b6a7a08987882ee320812d03b07aed6.6c47052b94a6335445ea43c96f2e3b4c");
-//           // Optional: Add redirectURL if applicable
-          
-//       await builderInstance.initialize();
-//       console.log("Zoho CRM SDK initialized successfully");
-//   } catch (error) {
-//       console.error("Error initializing Zoho CRM SDK:", error);
-//   }
-// }
-
-// initializeZohoCRM();
-
-// import ZohoCRM from "@zohocrm/nodejs-sdk";
-
-// console.log('zcrm=====>',ZohoCRM);
-// console.log('intialBuilder ---->',ZohoCRM.InitializeBuilder);
-
-// async function initializeZohoCRM() {
-//   // try {
-
-//   //   console.log('ZohoCRM object:', ZohoCRM);
-//   //     // Initialize the CRM using the 'Initializer' class
-//   //     const zohoCRM = new ZohoCRM.Initializer({
-//   //         clientId: "1000.BPPYY4E0MHWL1B0Y0B02Q6MG4QQKTD",
-//   //         clientSecret: "9e644de8b147ecb57ac1e1d8f1d2142fb956e68a6c",
-//   //         refreshToken: "1000.6b6a7a08987882ee320812d03b07aed6.6c47052b94a6335445ea43c96f2e3b4c",
-//   //         environment: 'https://crm.zoho.com/org751595265',
-//   //     });
-
-//   //     // Initialize the Zoho CRM SDK
-//   //     // await zohoCRM.initializeSDK();
-//   //     // await zohoCRM.initialize();
-//   //     console.log("Zoho CRM SDK initialized successfully");
-//   // } catch (error) {
-//   //     console.error("Error initializing Zoho CRM SDK:", error);
-//   // }
-
-//   try {
-//     console.log('ZohoCRM object:', ZohoCRM);
-
-//     // Initialize the SDK using InitializeBuilder
-//     const config = new ZohoCRM.InitializeBuilder()
-//       .clientId("1000.BPPYY4E0MHWL1B0Y0B02Q6MG4QQKTD")
-//       .clientSecret("9e644de8b147ecb57ac1e1d8f1d2142fb956e68a6c")
-//       .refreshToken("1000.6b6a7a08987882ee320812d03b07aed6.6c47052b94a6335445ea43c96f2e3b4c")
-//       .environment("https://crm.zoho.com/org751595265")
-//       .initialize();
-
-//     console.log("Zoho CRM SDK initialized successfully");
-//   } catch (error) {
-//     console.error("Error initializing Zoho CRM SDK:", error);
-//   }
-// }
-
-// initializeZohoCRM();
-
-
-// async function initializeZohoCRM() {
-//   const config = new InitializeBuilder()
-//       .initialize({
-//           clientId: "1000.BPPYY4E0MHWL1B0Y0B02Q6MG4QQKTD",
-//           clientSecret: "9e644de8b147ecb57ac1e1d8f1d2142fb956e68a6c",
-//           refreshToken: "1000.6b6a7a08987882ee320812d03b07aed6.6c47052b94a6335445ea43c96f2e3b4c",
-//           environment: USDataCenter.PRODUCTION(),
-//       });
-
-//   await config;
-//   console.log("Zoho CRM SDK initialized successfully");
-// }
-
-// const initializeZohoCRM = async () => {
-//   const environment = ZOHOCRMSDK.USDataCenter.PRODUCTION();
-//   const token = new ZOHOCRMSDK.OAuthBuilder()
-//     .clientId("1000.BPPYY4E0MHWL1B0Y0B02Q6MG4QQKTD") // Replace with your client ID
-//     .clientSecret("9e644de8b147ecb57ac1e1d8f1d2142fb956e68a6c") // Replace with your client secret
-//     .refreshToken(
-//       "1000.6b6a7a08987882ee320812d03b07aed6.6c47052b94a6335445ea43c96f2e3b4c"
-//     ) // Replace with your refresh token
-//     .build();
-
-//   try {
-//     await new ZOHOCRMSDK.InitializeBuilder()
-//       .environment(environment)
-//       .token(token)
-//       .initialize();
-//     console.log("Zoho CRM SDK initialized successfully.");
-//   } catch (error) {
-//     console.error("Error initializing Zoho CRM SDK:", error);
-//     throw error; // Propagate error for higher-level handling
-//   }
-// };
-
-
-// const initializeZohoCRM = async () => {
-//   const environment = ZOHOCRMSDK.USDataCenter.PRODUCTION();
-//   const token = new ZOHOCRMSDK.OAuthBuilder()
-//     .clientId("1000.BPPYY4E0MHWL1B0Y0B02Q6MG4QQKTD") // Replace with your client ID
-//     .clientSecret("9e644de8b147ecb57ac1e1d8f1d2142fb956e68a6c") // Replace with your client secret
-//     .refreshToken(
-//       "1000.6b6a7a08987882ee320812d03b07aed6.6c47052b94a6335445ea43c96f2e3b4c"
-//     ) // Replace with your refresh token
-//     .build();
-
-//     console.log("InitializeBuilder:", new ZOHOCRMSDK.InitializeBuilder());
-
-//     const initializeBuilder = new ZOHOCRMSDK.InitializeBuilder(); 
-//     const initializedBuilder = await initializeBuilder; 
-
-//     await initializedBuilder
-//         .environment(environment)
-//         .token(token)
-//         .initialize(); 
-
-//   // await new ZOHOCRMSDK.InitializeBuilder()
-//   //   .environment(environment)
-//   //   .token(token)
-//   //   .initialize();
-// };
-
-const createZohoCRMRecord = async (data) => {
-  try {
-    const moduleAPIName = "Buy_Lead"; // Replace with your custom module's API name
-    const recordOperations = new ZOHOCRMSDK.Record.RecordOperations(
-      moduleAPIName
-    );
-
-    const request = new ZOHOCRMSDK.Record.BodyWrapper();
-    const recordsArray = [];
-    const record = new ZOHOCRMSDK.Record.Record();
-
-    // Map your data fields to Zoho CRM fields
-    record.addKeyValue("Buy_Lead_Type", "Retail");
-    record.addKeyValue("Name", data.screen_0_First_Name_0);
-    record.addKeyValue("Buy_Leads_Last_Name", data.screen_0_Last_Name_1);
-    record.addKeyValue("Primary_Phone_No", data.screen_0_Phone_Number_2);
-    record.addKeyValue("Pin_Code", data.screen_0_Pincode_3);
-    record.addKeyValue(
-      "Registration_Number",
-      data.screen_1_Registration_Number_0
-    );
-    record.addKeyValue("Kms_Driven", data.screen_1_Kms_Driven_1);
-    record.addKeyValue("Owner_Serial", data.screen_1_Ownerships_2);
-    record.addKeyValue("Preferred_Date", data.screen_1_Select_Date_3);
-
-    recordsArray.push(record);
-    request.setData(recordsArray);
-
-    const headerInstance = new ZOHOCRMSDK.HeaderMap();
-    const response = await recordOperations.createRecords(
-      request,
-      headerInstance
-    );
-
-    if (response) {
-      const responseObject = response.getObject();
-      if (responseObject instanceof ZOHOCRMSDK.Record.ActionWrapper) {
-        responseObject.getData().forEach((actionResponse) => {
-          if (actionResponse instanceof ZOHOCRMSDK.Record.SuccessResponse) {
-            console.log(
-              "Record created successfully:",
-              actionResponse.getDetails()
-            );
-          } else if (actionResponse instanceof ZOHOCRMSDK.Record.APIException) {
-            console.error(
-              "Error creating record:",
-              actionResponse.getMessage().getValue()
-            );
-          }
-        });
-      }
-    }
-  } catch (error) {
-    console.error("Error while creating Zoho CRM record:", error);
-  }
-};
-
 const getNextScreen = async (decryptedBody) => {
   const { screen, data, version, action, flow_token } = decryptedBody;
   console.log("====================================");
@@ -240,7 +35,6 @@ const getNextScreen = async (decryptedBody) => {
       data: {}, // Add this field
       screens: [
         {
-          screen: "QUESTION_ONE",
           id: "QUESTION_ONE",
           title: "Sell your Bike Today!",
           data: {},
@@ -252,25 +46,19 @@ const getNextScreen = async (decryptedBody) => {
                 name: "flow_path",
                 children: [
                   {
+                    type: "TextSubheading",
+                    text: "Please enter your name",
+                  },
+                  {
                     type: "TextInput",
-                    label: "First Name",
+                    label: "Name",
                     name: "First_Name_78060d",
                     required: true,
                     "input-type": "text",
                   },
                   {
-                    type: "TextInput",
-                    label: "Last Name",
-                    name: "Last_Name_c71405",
-                    required: true,
-                    "input-type": "text",
-                  },
-                  {
-                    type: "TextInput",
-                    label: "Phone Number",
-                    name: "Phone_Number_74f5cc",
-                    required: true,
-                    "input-type": "phone",
+                    type: "TextSubheading",
+                    text: "Enter your pincode",
                   },
                   {
                     type: "TextInput",
@@ -278,6 +66,131 @@ const getNextScreen = async (decryptedBody) => {
                     name: "Pincode_ad5cdd",
                     required: true,
                     "input-type": "number",
+                    "max-chars": 6,
+                    "min-chars": 6,
+                  },
+                  {
+                    type: "TextSubheading",
+                    text: "Enter your registration no",
+                  },
+                  {
+                    type: "TextInput",
+                    name: "Registration_Number_949044",
+                    label: "Reg No.",
+                    required: true,
+                    "input-type": "text",
+                  },
+                  {
+                    type: "TextSubheading",
+                    text: "Brand of your two wheeler",
+                  },
+                  {
+                    type: "Dropdown",
+                    label: "Brand",
+                    name: "Brand",
+                    required: true,
+                    "data-source": [
+                      {
+                        id: "0_TVS",
+                        title: "TVS",
+                      },
+                      {
+                        id: "1_Bajaj",
+                        title: "Bajaj",
+                      },
+                      {
+                        id: "2_Hero",
+                        title: "Hero",
+                      },
+                      {
+                        id: "3_Honda",
+                        title: "Honda",
+                      },
+                      {
+                        id: "4_Yamaha",
+                        title: "Yamaha",
+                      },
+                      {
+                        id: "5_Royal_Enfield",
+                        title: "Royal Enfield",
+                      },
+                      {
+                        id: "6_Suzuki",
+                        title: "Suzuki",
+                      },
+                      {
+                        id: "7_Jawa",
+                        title: "Jawa",
+                      },
+                      {
+                        id: "8_KTM",
+                        title: "KTM",
+                      },
+                      {
+                        id: "9_Kawasaki",
+                        title: "Kawasaki",
+                      },
+                      {
+                        id: "10_Ola",
+                        title: "Ola",
+                      },
+                      {
+                        id: "11_Vespa",
+                        title: "Vespa",
+                      },
+                      {
+                        id: "12_Triumph",
+                        title: "Triumph",
+                      },
+                      {
+                        id: "13_Yezdi",
+                        title: "Yezdi",
+                      },
+                      {
+                        id: "14_Ather",
+                        title: "Ather",
+                      },
+                      {
+                        id: "15_Hero_Electric",
+                        title: "Hero Electric",
+                      },
+                      {
+                        id: "16_Pure_EV",
+                        title: "Pure EV",
+                      },
+                      {
+                        id: "17_BMW",
+                        title: "BMW",
+                      },
+                      {
+                        id: "18_Ducati",
+                        title: "Ducati",
+                      },
+                      {
+                        id: "19_Harley-Davidson",
+                        title: "Harley-Davidson",
+                      },
+                      {
+                        id: "20_Benelli",
+                        title: "Benelli",
+                      },
+                      {
+                        id: "21_Husqvarna",
+                        title: "Husqvarna",
+                      },
+                      {
+                        id: "22_Ampere",
+                        title: "Ampere",
+                      },
+                      {
+                        id: "23_Aprilia",
+                        title: "Aprilia",
+                      },
+                      {
+                        id: "24_Mahindra",
+                        title: "Mahindra",
+                      },
+                    ],
                   },
                   {
                     type: "Footer",
@@ -290,8 +203,9 @@ const getNextScreen = async (decryptedBody) => {
                       },
                       payload: {
                         screen_0_First_Name_0: "${form.First_Name_78060d}",
-                        screen_0_Last_Name_1: "${form.Last_Name_c71405}",
-                        screen_0_Phone_Number_2: "${form.Phone_Number_74f5cc}",
+                        screen_0_Registration_Number_3:
+                          "${form.Registration_Number_949044}",
+                        screen_0_Brand_4: "${form.Brand}",
                         screen_0_Pincode_3: "${form.Pincode_ad5cdd}",
                       },
                     },
@@ -302,25 +216,24 @@ const getNextScreen = async (decryptedBody) => {
           },
         },
         {
-          screen: "screen_irbhvz",
           id: "screen_irbhvz",
           title: "Submit",
           data: {
             screen_0_First_Name_0: {
               type: "string",
-              __example__: "${data.screen_0_First_Name_0}",
+              __example__: "Example",
             },
-            screen_0_Last_Name_1: {
+            screen_0_Registration_Number_3: {
               type: "string",
-              __example__: "${data.screen_0_Last_Name_1}",
+              __example__: "Example",
             },
-            screen_0_Phone_Number_2: {
+            screen_0_Brand_4: {
               type: "string",
-              __example__: "${data.screen_0_Phone_Number_2}",
+              __example__: "Example",
             },
             screen_0_Pincode_3: {
               type: "string",
-              __example__: "${data.screen_0_Pincode_3}",
+              __example__: "Example",
             },
           },
           terminal: true,
@@ -332,11 +245,32 @@ const getNextScreen = async (decryptedBody) => {
                 name: "flow_path",
                 children: [
                   {
-                    type: "TextInput",
-                    name: "Registration_Number_949044",
-                    label: "Registration Number",
+                    type: "TextSubheading",
+                    text: "Enter the year of your two-wheeler",
+                  },
+                  {
+                    type: "Dropdown",
+                    label: "MFG Year",
                     required: true,
-                    "input-type": "text",
+                    name: "MFY",
+                    "data-source": [
+                      { id: "0_2025", title: "2025" },
+                      { id: "1_2024", title: "2024" },
+                      { id: "2_2023", title: "2023" },
+                      { id: "3_2022", title: "2022" },
+                      { id: "4_2021", title: "2021" },
+                      { id: "5_2020", title: "2020" },
+                      { id: "6_2019", title: "2019" },
+                      { id: "7_2018", title: "2018" },
+                      { id: "8_2017", title: "2017" },
+                      { id: "9_2016", title: "2016" },
+                      { id: "10_2015", title: "2015" },
+                      { id: "11_<_2015", title: "< 2015" },
+                    ],
+                  },
+                  {
+                    type: "TextSubheading",
+                    text: "Select the KMs Driven",
                   },
                   {
                     type: "Dropdown",
@@ -345,60 +279,102 @@ const getNextScreen = async (decryptedBody) => {
                     name: "Kms_Driven_0a59bd",
                     "data-source": [
                       {
-                        id: "0_5000",
-                        title: "5000",
+                        id: "0_0_-_5,000_KMs",
+                        title: "0 - 5,000 KMs",
                       },
                       {
-                        id: "1_10000",
-                        title: "10000",
+                        id: "1_5,000_-_10,000_KMs",
+                        title: "5,000 - 10,000 KMs",
                       },
                       {
-                        id: "2_15000",
-                        title: "15000",
+                        id: "2_10,000_-_15,000_KMs",
+                        title: "10,000 - 15,000 KMs",
                       },
                       {
-                        id: "3_20000",
-                        title: "20000",
+                        id: "3_15,000_-_20,000_KMs",
+                        title: "15,000 - 20,000 KMs",
                       },
                       {
-                        id: "4_25000",
-                        title: "25000",
+                        id: "4_20,000_-_25,000_KMs",
+                        title: "20,000 - 25,000 KMs",
                       },
                       {
-                        id: "5_30000",
-                        title: "30000",
+                        id: "5_25,000_-_30,000_KMs",
+                        title: "25,000 - 30,000 KMs",
                       },
                       {
-                        id: "6_35000",
-                        title: "35000",
+                        id: "6_30,000_-_35,000_KMs",
+                        title: "30,000 - 35,000 KMs",
+                      },
+                      {
+                        id: "7_35,000_-_40,000_KMs",
+                        title: "35,000 - 40,000 KMs",
+                      },
+                      {
+                        id: "8_40,000_-_45,000_KMs",
+                        title: "40,000 - 45,000 KMs",
+                      },
+                      {
+                        id: "9_45,000_-_50,000_KMs",
+                        title: "45,000 - 50,000 KMs",
+                      },
+                      {
+                        id: "10_50,000_-_55,000_KMs",
+                        title: "50,000 - 55,000 KMs",
+                      },
+                      {
+                        id: "11_55,000_-_60,000_KMs",
+                        title: "55,000 - 60,000 KMs",
+                      },
+                      {
+                        id: "12_60,000_-_65,000_KMs",
+                        title: "60,000 - 65,000 KMs",
+                      },
+                      {
+                        id: "13_65,000_-_70,000_KMs",
+                        title: "65,000 - 70,000 KMs",
+                      },
+                      {
+                        id: "14_70,000+_KMs",
+                        title: "70,000+ KMs",
                       },
                     ],
                   },
                   {
-                    type: "Dropdown",
-                    label: "Ownerships",
-                    required: true,
-                    name: "Ownerships_fea0b0",
-                    "data-source": [
-                      {
-                        id: "0_1st_Owner",
-                        title: "1st Owner",
-                      },
-                      {
-                        id: "1_2nd_Owner",
-                        title: "2nd Owner",
-                      },
-                      {
-                        id: "2_3rd_Owner",
-                        title: "3rd Owner",
-                      },
-                    ],
+                    type: "TextSubheading",
+                    text: "Select your preffered date for home inspection",
                   },
                   {
                     type: "DatePicker",
                     label: "Select Date",
                     required: true,
                     name: "Select_Date_104aad",
+                    "max-date": "2025-05-31",
+                    "min-date": "2025-02-13",
+                  },
+                  {
+                    text: "Choose a time slot",
+                    type: "TextSubheading",
+                  },
+                  {
+                    "data-source": [
+                      {
+                        id: "0_Morning",
+                        title: "Morning",
+                      },
+                      {
+                        id: "1_Afternoon",
+                        title: "Afternoon",
+                      },
+                      {
+                        id: "2_Evening",
+                        title: "Evening",
+                      },
+                    ],
+                    label: "Choose a time slot",
+                    name: "Choose_a_time_slot_85a2d3",
+                    required: true,
+                    type: "Dropdown",
                   },
                   {
                     type: "Footer",
@@ -406,15 +382,15 @@ const getNextScreen = async (decryptedBody) => {
                     "on-click-action": {
                       name: "data_exchange",
                       payload: {
-                        screen_1_Registration_Number_0:
-                          "${form.Registration_Number_949044}",
+                        screen_1_MFY_0: "${form.MFY}",
                         screen_1_Kms_Driven_1: "${form.Kms_Driven_0a59bd}",
-                        screen_1_Ownerships_2: "${form.Ownerships_fea0b0}",
+                        screen_1_Time_Slot_4:
+                          "${form.Choose_a_time_slot_85a2d3}",
                         screen_1_Select_Date_3: "${form.Select_Date_104aad}",
                         screen_0_First_Name_0: "${data.screen_0_First_Name_0}",
-                        screen_0_Last_Name_1: "${data.screen_0_Last_Name_1}",
-                        screen_0_Phone_Number_2:
-                          "${data.screen_0_Phone_Number_2}",
+                        screen_0_Registration_Number_3:
+                          "${data.screen_0_Registration_Number_3}",
+                        screen_0_Brand_4: "${data.screen_0_Brand_4}",
                         screen_0_Pincode_3: "${data.screen_0_Pincode_3}",
                       },
                     },
@@ -434,96 +410,70 @@ const getNextScreen = async (decryptedBody) => {
     // Extract and use submitted data
     const {
       screen_0_First_Name_0,
-      screen_0_Last_Name_1,
+      screen_0_Brand_4,
       screen_0_Phone_Number_2,
       screen_0_Pincode_3,
-      screen_1_Registration_Number_0,
+      screen_0_Registration_Number_3,
       screen_1_Kms_Driven_1,
-      screen_1_Ownerships_2,
+      // screen_1_Ownerships_2,
       screen_1_Select_Date_3,
     } = data;
 
     // Validate data
-    if (!screen_0_First_Name_0 || !screen_1_Registration_Number_0) {
+    if (!screen_0_First_Name_0 || !screen_0_Registration_Number_3) {
       throw new Error("Required fields are missing.");
     }
 
-    // Handle successful data submission
-    return {
-      screen: "SUCCESS",
-      data: {
-        message: "Customer data received successfully.",
-        extension_message_response: {
-          params: {
-            flow_token: flow_token,
-            customer_data: data,
-            // optional_param2: "<value2>"
+    try {
+      // Handle successful data submission
+      const summary = `
+      Thank you for submitting your details!
+      Name: ${data.screen_0_First_Name_0} ${data.screen_0_Brand_4}
+      Phone: ${data.screen_0_Phone_Number_2}
+      Pincode: ${data.screen_0_Pincode_3}
+      Registration Number: ${data.screen_0_Registration_Number_3}
+      Kms Driven: ${data.screen_1_Kms_Driven_1}
+      Ownership: ${data.screen_1_Kms_Driven_1}
+      Date: ${data.screen_1_Select_Date_3}
+    `;
+
+      return {
+        screen: "SUCCESS",
+        data: {
+          message: summary,
+          extension_message_response: {
+            params: {
+              flow_token: flow_token,
+              customer_data: data,
+            },
           },
         },
-      },
-    };
+      };
+    } catch (error) {
+      console.error("Error creating lead in Zoho CRM:", error);
 
-    // try {
-    //   // Initialize and create the Zoho CRM record
-    //   // await initializeZohoCRM(); 
-    //   // await createZohoCRMRecord(data); 
-  
+      // Return an error message to the user
+      return {
+        screen: "ERROR",
+        data: {
+          message:
+            "We apologize, but there was an issue processing your request. Please try again later or contact support.",
+          error_details: error.message,
+          extension_message_response: {
+            params: {
+              flow_token: flow_token,
+              error: error.message,
+            },
+          },
+        },
+      };
+    }
+
     //   // // Call triggerFlowCompletion
     //   // await triggerFlowCompletion(data);
-  
+
     //   // // Send Summary Message
     //   // await sendSummaryMessage(data);
-  
-    //   return {
-    //     screen: "SUCCESS",
-    //     data: {
-    //       message: "Customer data received successfully.",
-    //       extension_message_response: {
-    //         params: {
-    //           flow_token: flow_token,
-    //           customer_data: data,
-    //           // optional_param2: "<value2>"
-    //         },
-    //       },
-    //     },
-    //   };
-    // } catch (error) {
-    //   console.error("Error creating Zoho CRM record:", error);
-    //   // Handle the error gracefully 
-    //   // For example, return an error response:
-    //   return {
-    //     screen: "ERROR", 
-    //     data: { 
-    //       message: "Failed to create Zoho CRM record." 
-    //     }
-    //   };
-    // }
-
-    // Initialize and create the Zoho CRM record
-    // await initializeZohoCRM();
-    // await createZohoCRMRecord(data);
-
-    // // Call triggerFlowCompletion
-    // await triggerFlowCompletion(data);
-
-    // // Send Summary Message
-    // await sendSummaryMessage(data);
-
-    // Handle successful data submission
-    // return {
-    //   screen: "SUCCESS",
-    //   data: {
-    //     message: "Customer data received successfully.",
-    //     extension_message_response: {
-    //       params: {
-    //         flow_token: flow_token,
-    //         customer_data: data,
-    //         // optional_param2: "<value2>"
-    //       },
-    //     },
-    //   },
-    // };
-
   }
 
   console.error("Unhandled request body:", decryptedBody);
@@ -542,16 +492,16 @@ const triggerFlowCompletion = async (data) => {
 const sendSummaryMessage = async (data) => {
   const summary = `
       Thank you for submitting your details!
-      Name: ${data.screen_0_First_Name_0} ${data.screen_0_Last_Name_1}
+      Name: ${data.screen_0_First_Name_0} ${data.screen_0_Brand_4}
       Phone: ${data.screen_0_Phone_Number_2}
       Pincode: ${data.screen_0_Pincode_3}
-      Registration Number: ${data.screen_1_Registration_Number_0}
+      Registration Number: ${data.screen_0_Registration_Number_3}
       Kms Driven: ${data.screen_1_Kms_Driven_1}
-      Ownership: ${data.screen_1_Ownerships_2}
+      Ownership: ${data.screen_1_Kms_Driven_1}
       Date: ${data.screen_1_Select_Date_3}
     `;
   console.log("Sending summary message:", summary);
   // Here, implement the logic to send the summary message (e.g., via email, SMS, or other communication channels)
 };
 
-export default getNextScreen; 
+export default getNextScreen;

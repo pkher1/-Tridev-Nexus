@@ -9,11 +9,14 @@ import bodyParser from 'body-parser';
 import getNextScreen  from './flow.js';
 import crypto from 'crypto';
 import fs from 'fs';
+import fetch from 'node-fetch';
+import ZohoAPIClient from './zoho.js';
 
 const PORT = 3000;
 const app = express();
 const APP_SECRET = "ce43b271bbb93da9d1a42506ae72b403";
 const WEBHOOK_VERIFY_TOKEN = "zxcvasdf123";
+const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || "EAAGTLPz6kJABO7BZCzcfbVbO0AgGVxsSsZBoK20GL5t2SQCrSMHbYnzTe5daU6ZA6r6HINudZBgSijJthRV7TU0vkYMPLRgHYkV8Q8ZCIgTAmC5fpo5ZAwjHzrG4xZBAW8hc6jbK1NnhATPHozMM5SIVxz0Szx3jZBbzc4ROnGResFTThbKs6blLISrCb2UFohwXigZDZD";
 // app.use(express.json());
 
 // Define FlowEndpointException early in the code
@@ -58,74 +61,40 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-// const axios = require('axios');
+// Function to send a WhatsApp message
+const sendWhatsAppMessage = async (to, message, phoneNumberId) => {
+  try {
+    const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: to,
+        type: "text",
+        text: {
+          preview_url: false,
+          body: message
+        }
+      })
+    });
 
-// // Webhook handler to process incoming messages
-// const handleWebhook = async (req, res) => {
-//   try {
-//     const webhookPayload = req.body;
-//     console.log("Received Webhook Payload:", webhookPayload);
+    if (!response.ok) {
+      throw new Error(`WhatsApp API error: ${response.status} ${response.statusText}`);
+    }
 
-//     // Check if the webhook contains the expected structure
-//     if (webhookPayload.messages && webhookPayload.messages.length > 0) {
-//       const messageData = webhookPayload.messages[0];
-//       const responseJson = JSON.parse(messageData.interactive.nfm_reply.response_json);
-
-//       const { flow_token, optional_param1, optional_param2 } = responseJson;
-
-//       // Process the flow token and optional parameters
-//       console.log("Flow Token:", flow_token);
-//       console.log("Optional Params:", optional_param1, optional_param2);
-
-//       // Send a summary message to WhatsApp (you can modify this to send any desired message)
-//       const summaryMessage = `
-//         Flow completed successfully!
-//         Flow Token: ${flow_token}
-//         Optional Param 1: ${optional_param1}
-//         Optional Param 2: ${optional_param2}
-//       `;
-
-//       // Manually trigger the summary message
-//       await sendWhatsAppMessage(messageData.context.from, summaryMessage);
-
-//       // Respond with a success message
-//       res.status(200).json({ message: "Webhook processed successfully" });
-//     } else {
-//       throw new Error("Invalid webhook payload");
-//     }
-//   } catch (error) {
-//     console.error("Error processing webhook:", error);
-//     res.status(500).json({ message: "Error processing webhook", error: error.message });
-//   }
-// };
-
-// // Function to send a WhatsApp message (manually triggered)
-// const sendWhatsAppMessage = async (to, message) => {
-//   try {
-//     const whatsappApiUrl = "<YOUR_WHATSAPP_API_URL>"; // Replace with the WhatsApp API URL
-//     const apiKey = "<YOUR_API_KEY>"; // Replace with your API key
-
-//     const payload = {
-//       to,
-//       message,
-//       type: "text", // Assuming text message type for simplicity
-//     };
-
-//     const headers = {
-//       Authorization: `Bearer ${apiKey}`,
-//     };
-
-//     const response = await axios.post(whatsappApiUrl, payload, { headers });
-
-//     if (response.status === 200) {
-//       console.log("Message sent to WhatsApp successfully!");
-//     } else {
-//       throw new Error("Failed to send WhatsApp message");
-//     }
-//   } catch (error) {
-//     console.error("Error sending WhatsApp message:", error);
-//   }
-// };
+    const data = await response.json();
+    console.log("Message sent successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error sending WhatsApp message:", error);
+    throw error;
+  }
+};
 
 // // Mocking a test to trigger the webhook handler
 // const testWebhook = async () => {
@@ -179,85 +148,106 @@ app.post("/webhook", async ({ body }, res) => {
   //     return res.status(432).send();
   //   }
 
-  if (body.entry && body.entry[0] && body.entry[0].changes) {
-    // Process status change or other event
-    const eventChanges = body.entry[0].changes;
-    eventChanges.forEach((change) => {
-      console.log("Change detected:", change);
-      // Handle flow status change or message status change here
-    });
-
-    // Respond to webhook request
-    res.status(200).send("Event received successfully.");
-  }
-
-  const payload = body;
-  
-
-//   if (payload.messages) {
-//     payload.messages.forEach(async (message) => {
-//       console.log("====================================");
-//       console.log(message);
-//       console.log("====================================");
-//       if (
-//         message.type === "interactive" &&
-//         message.interactive?.type === "nfm_reply"
-//       ) {
-//         const flowToken = JSON.parse(
-//           message.interactive.nfm_reply.response_json
-//         ).flow_token;
-//         const userNumber = message.from;
-
-//         // Respond to data exchange
-//         // const flowResponse = triggerFlowCompletion(flowToken, {
-//         //   optional_param1: "value1",
-//         //   optional_param2: "value2"
-//         // });
-//         // res.status(200).send(flowResponse);
-
-//         // // Send summary message
-//         // const summaryMessage = "Thank you for completing the flow! We will get back to you shortly.";
-//         // await sendSummaryMessage(userNumber, summaryMessage);
-//       }
-//     });
-//   } else {
-//     res.status(400).send("No messages in webhook payload");
-//   }
-
-  let decryptedRequest = null;
-  try {
-    decryptedRequest = decryptRequest(body, PRIVATE_KEY);
-  } catch (err) {
-    console.error(err);
-    if (err instanceof FlowEndpointException) {
-      return res.status(err.statusCode).send();
+  // Check if this is a Flow request (encrypted) or a webhook notification
+  if (body.encrypted_aes_key && body.encrypted_flow_data && body.initial_vector) {
+    // Handle encrypted Flow request
+    let decryptedRequest = null;
+    try {
+      decryptedRequest = decryptRequest(body, PRIVATE_KEY);
+    } catch (err) {
+      console.error(err);
+      if (err instanceof FlowEndpointException) {
+        return res.status(err.statusCode).send();
+      }
+      return res.status(500).send();
     }
-    return res.status(500).send();
+
+    const { aesKeyBuffer, initialVectorBuffer, decryptedBody } = decryptedRequest;
+    console.log("💬decryptedBody👉:", decryptedBody);
+
+    // TODO: Flow token validation logic can be added here if needed
+    const screenResponse = await getNextScreen(decryptedBody);
+    console.log("👉 Response to Encrypt:", screenResponse);
+    return res.send(encryptResponse(screenResponse, aesKeyBuffer, initialVectorBuffer));
   }
 
-  const { aesKeyBuffer, initialVectorBuffer, decryptedBody } = decryptedRequest;
-  console.log("💬decryptedBody👉:", decryptedBody);
+  // Handle webhook notification (when Flow is completed)
+  if (body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
+    const message = body.entry[0].changes[0].value.messages[0];
+    console.log("Processing webhook message:", message);
+    
+    if (message.type === "interactive" && message.interactive?.type === "nfm_reply") {
+      try {
+        // Extract the response data
+        const responseData = message.interactive.nfm_reply;
+        console.log("Flow response data:", responseData);
 
-  // TODO: Uncomment this block and add your flow token validation logic.
-  // If the flow token becomes invalid, return HTTP code 427 to disable the flow and show the message in `error_msg` to the user
-  // Refer to the docs for details https://developers.facebook.com/docs/whatsapp/flows/reference/error-codes#endpoint_error_codes
+        // If there's no response_json, this might be a different type of interaction
+        if (!responseData.response_json) {
+          return res.status(200).send("OK");
+        }
 
-  /*
-  if (!isValidFlowToken(decryptedBody.flow_token)) {
-    const error_response = {
-      error_msg: `The message is no longer available`,
-    };
-    return res
-      .status(427)
-      .send(
-        encryptResponse(error_response, aesKeyBuffer, initialVectorBuffer)
-      );
+        // Parse the response JSON
+        const flowData = JSON.parse(responseData.response_json);
+        console.log("Parsed flow data:", flowData);
+
+        // Extract customer data from the nested structure
+        const customerData = flowData.customer_data;
+        
+        // Construct the data exchange request
+        const exchangeRequest = {
+          action: "data_exchange",
+          screen: "screen_irbhvz",
+          data: {
+            screen_1_MFY_0: customerData.screen_1_MFY_0,
+            screen_1_Kms_Driven_1: customerData.screen_1_Kms_Driven_1,
+            screen_1_Select_Date_3: customerData.screen_1_Select_Date_3,
+            screen_1_Time_Slot_4:customerData.screen_1_Time_Slot_4,
+            screen_0_First_Name_0: customerData.screen_0_First_Name_0,
+            screen_0_Phone_Number_2: message.from,
+            screen_0_Pincode_3: customerData.screen_0_Pincode_3,
+            screen_0_Registration_Number_3: customerData.screen_0_Registration_Number_3,
+            screen_0_Brand_4: customerData.screen_0_Brand_4,
+          },
+          flow_token: flowData.flow_token
+        };
+
+        console.log("Data exchange request:", exchangeRequest);
+
+        // Create lead in Zoho CRM
+        const zohoClient = new ZohoAPIClient();
+        const leadId = await zohoClient.createLead(exchangeRequest.data);
+        console.log("Zoho CRM Lead created successfully with ID:", leadId);
+
+        // Get the phone number ID from the webhook message metadata
+        const phoneNumberId = body.entry[0].changes[0].value.metadata.phone_number_id;
+        
+        // Send the summary message using WhatsApp API
+        await sendWhatsAppMessage(
+          message.from,
+          `Thanks! Got your details—our team will get in touch with you soon to confirm your home inspection. ⚡`,
+          phoneNumberId
+        );
+
+        // Return success response
+        return res.status(200).json({
+          success: true,
+          message: "Summary message sent successfully"
+        });
+
+      } catch (error) {
+        console.error("Error processing flow completion:", error);
+        return res.status(500).json({
+          success: false,
+          error: "Error processing flow completion",
+          details: error.message
+        });
+      }
+    }
   }
-  */
 
-  const screenResponse = await getNextScreen(decryptedBody);
-  console.log("👉 Response to Encrypt:", screenResponse);
-  res.send(encryptResponse(screenResponse, aesKeyBuffer, initialVectorBuffer));
+  // For any other webhook events, return 200 OK
+  return res.status(200).send("OK");
 });
 
 const decryptRequest = (body, privateKey) => {
