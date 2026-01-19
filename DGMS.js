@@ -11,8 +11,9 @@ const CONFIG = {
     childTableField: 'custom_technical_issue_categories',
     categoryField: 'technical_issue_category',
     subCategoryField: 'technical_issue_sub_category',
+    photoField: 'photovideo_evidance', // Match the fieldname from your doctype
     mappingDoctype: 'Technical Issue Category Mapping',
-    attachFields: ['custom_image_1', 'custom_image_2', 'custom_image_3'] // 👈 list your file fields here
+    attachFields: ['custom_image_1', 'custom_image_2', 'custom_image_3']
 };
 
 // ==========================================
@@ -80,7 +81,28 @@ frappe.web_form.after_load = () => {
     generateSubject();
     load_technical_issue_categories();
     setup_child_table_category_listener();
+    make_child_table_fields_mandatory();
 };
+
+// ==========================================
+// Make Child Table Fields Mandatory
+// ==========================================
+function make_child_table_fields_mandatory() {
+    setTimeout(() => {
+        const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
+        if (!child_table || !child_table.grid) {
+            console.warn("Child table not ready yet.");
+            return;
+        }
+
+        // Set fields as mandatory in the child table
+        child_table.grid.update_docfield_property(CONFIG.categoryField, 'reqd', 1);
+        child_table.grid.update_docfield_property(CONFIG.subCategoryField, 'reqd', 1);
+        child_table.grid.update_docfield_property(CONFIG.photoField, 'reqd', 1);
+
+        console.log("Child table fields marked as mandatory");
+    }, 500);
+}
 
 // ==========================================
 // Auto Subject Generator
@@ -192,6 +214,8 @@ function setup_child_table_category_listener() {
 // ==========================================
 frappe.web_form.validate = () => {
     const data = frappe.web_form.get_values();
+    
+    // Check subject
     if (!data.subject || data.subject.trim() === '') {
         frappe.msgprint({
             title: 'Missing Information',
@@ -200,5 +224,49 @@ frappe.web_form.validate = () => {
         });
         return false;
     }
+
+    // Check child table has at least one row
+    const child_data = data[CONFIG.childTableField];
+    if (!child_data || child_data.length === 0) {
+        frappe.msgprint({
+            title: 'Missing Information',
+            message: 'Please add at least one Issue Category.',
+            indicator: 'red'
+        });
+        return false;
+    }
+
+    // Validate each row in child table
+    for (let i = 0; i < child_data.length; i++) {
+        const row = child_data[i];
+        
+        if (!row[CONFIG.categoryField]) {
+            frappe.msgprint({
+                title: 'Missing Information',
+                message: `Row ${i + 1}: Issue Category is mandatory.`,
+                indicator: 'red'
+            });
+            return false;
+        }
+
+        if (!row[CONFIG.subCategoryField]) {
+            frappe.msgprint({
+                title: 'Missing Information',
+                message: `Row ${i + 1}: Issue Sub Category is mandatory.`,
+                indicator: 'red'
+            });
+            return false;
+        }
+
+        if (!row[CONFIG.photoField]) {
+            frappe.msgprint({
+                title: 'Missing Information',
+                message: `Row ${i + 1}: Photo/Video Evidence is mandatory.`,
+                indicator: 'red'
+            });
+            return false;
+        }
+    }
+
     return true;
 };
