@@ -2,6 +2,11 @@
 // Quality Issue Web Form Script (with Multi-Attach Fix)
 // ==========================================
 
+function DEBUG_LOG(...args) {
+    console.log("%c[DEBUG]", "color: #00bcd4; font-weight: bold;", ...args);
+}
+
+
 const CONFIG = {
     dealerField: 'custom_store__fofo_name',
     registrationField: 'custom_vehicle_registration_no',
@@ -16,6 +21,9 @@ const CONFIG = {
     mappingDoctype: 'Technical Issue Category Mapping',
     attachFields: ['custom_image_1', 'custom_image_2', 'custom_image_3']
 };
+
+// Track ongoing updates to prevent duplicate calls
+let updating_rows = new Set();
 
 // ==========================================
 // Web Form Initialization
@@ -81,6 +89,8 @@ frappe.web_form.after_load = () => {
 
     generateSubject();
     setup_child_table_category_listener();
+    setup_dealer_issue_type_filter();
+    force_attach_link_filter_on_click();
     make_child_table_fields_mandatory();
 };
 
@@ -123,10 +133,190 @@ function generateSubject() {
 }
 
 // ==========================================
+// Setup Dealer Issue Type Filter for Link Field
+// ==========================================
+function setup_dealer_issue_type_filter() {
+    DEBUG_LOG("🚀 setup_dealer_issue_type_filter() called");
+
+    setTimeout(() => {
+        const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
+
+        DEBUG_LOG("📌 child_table found?", !!child_table);
+        DEBUG_LOG("📌 child_table.grid found?", !!child_table?.grid);
+
+        if (!child_table || !child_table.grid) {
+            console.warn("❌ Child table not ready yet for filter setup.");
+            return;
+        }
+
+        // Override the grid's add_row to set up filters
+        const original_add_row = child_table.grid.add_row;
+
+        if (!child_table.grid.__filter_patched) {
+            child_table.grid.__filter_patched = true;
+
+            DEBUG_LOG("🛠️ Patching grid.add_row() to attach filters on new row");
+
+            child_table.grid.add_row = function () {
+                DEBUG_LOG("➕ Add Row clicked - grid.add_row triggered");
+
+                const row = original_add_row.apply(this, arguments);
+
+                DEBUG_LOG("🧾 New row returned:", row);
+                setup_link_field_filter(row);
+
+                return row;
+            };
+        } else {
+            DEBUG_LOG("⚠️ grid.add_row already patched, skipping patching again");
+        }
+
+        // Also set up filters for existing rows
+        if (child_table.grid.grid_rows && child_table.grid.grid_rows.length > 0) {
+            DEBUG_LOG(`📌 Existing rows found: ${child_table.grid.grid_rows.length}`);
+            child_table.grid.grid_rows.forEach((row, idx) => {
+                DEBUG_LOG(`🔁 Attaching filter for existing row #${idx + 1}`, row);
+                setup_link_field_filter(row);
+            });
+        } else {
+            DEBUG_LOG("📌 No existing rows found yet");
+        }
+
+        DEBUG_LOG("✅ Dealer Issue Type filter setup complete");
+    }, 1000);
+}
+
+function force_attach_link_filter_on_click() {
+    DEBUG_LOG("🧲 force_attach_link_filter_on_click() initialized");
+
+    setTimeout(() => {
+        const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
+
+        DEBUG_LOG("📌 child_table exists?", !!child_table);
+        DEBUG_LOG("📌 child_table.grid exists?", !!child_table?.grid);
+
+        if (!child_table || !child_table.grid) {
+            console.warn("❌ Child table grid not found");
+            return;
+        }
+
+        // IMPORTANT: In Web Forms, use grid.get_field(fieldname)
+        const link_field = child_table.grid.get_field(CONFIG.categoryField);
+
+        DEBUG_LOG("🔍 link_field from grid.get_field():", link_field);
+
+        if (!link_field) {
+            console.warn("❌ Could not find link field using grid.get_field()");
+            return;
+        }
+
+        // Attach query here (global for all rows)
+        link_field.get_query = function () {
+            const dealer_issue_type = frappe.web_form.get_value(CONFIG.dealerIssueTypeField);
+
+            DEBUG_LOG("🔥 GLOBAL get_query triggered for Issue Category");
+            DEBUG_LOG("📌 dealer_issue_type:", dealer_issue_type);
+
+            if (!dealer_issue_type) {
+                DEBUG_LOG("⚠️ Dealer Issue Type missing -> block all results");
+                return { filters: [["name", "=", "___NONE___"]] };
+            }
+
+            if (dealer_issue_type === "Non Technical") {
+                DEBUG_LOG("✅ Filter applied: Only Non Technical");
+                return {
+                    filters: [["technical_issue_category", "=", "Non Technical"]]
+                };
+            }
+
+            if (dealer_issue_type === "Transit") {
+                DEBUG_LOG("✅ Filter applied: Only Transit");
+                return {
+                    filters: [["technical_issue_category", "=", "Transit"]]
+                };
+            }
+
+            if (dealer_issue_type === "Technical") {
+                DEBUG_LOG("✅ Filter applied: Technical only (exclude Non Technical + Transit)");
+                return {
+                    filters: [["technical_issue_category", "not in", ["Non Technical", "Transit"]]]
+                };
+            }
+
+            DEBUG_LOG("⚠️ Unknown Dealer Issue Type:", dealer_issue_type);
+            return { filters: [["name", "=", "___NONE___"]] };
+        };
+
+        DEBUG_LOG("✅ GLOBAL Link filter attached using child_table.grid.get_field()");
+    }, 1200);
+}
+
+
+
+
+function setup_link_field_filter(grid_row) {
+    DEBUG_LOG("🔧 setup_link_field_filter() called with row:", grid_row);
+
+    if (!grid_row || !grid_row.grid || !grid_row.grid.fields_dict) {
+        console.warn("❌ Invalid grid_row structure");
+        return;
+    }
+
+    const field = grid_row.grid.fields_dict[CONFIG.categoryField];
+    if (!field || !field.df) {
+        console.warn("❌ Link field object not found in grid row");
+        return;
+    }
+
+    DEBUG_LOG("✅ Link field found. Attaching get_query...");
+
+    field.df.get_query = function () {
+        const dealer_issue_type = frappe.web_form.get_value(CONFIG.dealerIssueTypeField);
+
+        DEBUG_LOG("🔥 get_query() triggered");
+        DEBUG_LOG("📌 dealer_issue_type:", dealer_issue_type);
+
+        if (!dealer_issue_type) {
+            DEBUG_LOG("⚠️ No Dealer Issue Type selected, blocking results");
+            return { filters: [["name", "=", "___NONE___"]] };
+        }
+
+        if (dealer_issue_type === "Non Technical") {
+            DEBUG_LOG("✅ Filter applied: Only Non Technical");
+            return {
+                filters: [["technical_issue_category", "=", "Non Technical"]]
+            };
+        }
+
+        if (dealer_issue_type === "Transit") {
+            DEBUG_LOG("✅ Filter applied: Only Transit");
+            return {
+                filters: [["technical_issue_category", "=", "Transit"]]
+            };
+        }
+
+        if (dealer_issue_type === "Technical") {
+            DEBUG_LOG("✅ Filter applied: Only Technical (exclude Non Technical & Transit)");
+            return {
+                filters: [["technical_issue_category", "not in", ["Non Technical", "Transit"]]]
+            };
+        }
+
+        DEBUG_LOG("⚠️ Unknown Dealer Issue Type:", dealer_issue_type);
+        return { filters: [["name", "=", "___NONE___"]] };
+    };
+
+    DEBUG_LOG("✅ get_query attached successfully");
+}
+
+
+
+
+// ==========================================
 // Watch Dealer Issue Type Changes
 // ==========================================
 frappe.web_form.on(CONFIG.dealerIssueTypeField, function() {
-    console.log("Dealer Issue Type changed");
+    console.log("🔄 Dealer Issue Type changed");
     
     // Clear existing child table rows when issue type changes
     const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
@@ -139,6 +329,11 @@ frappe.web_form.on(CONFIG.dealerIssueTypeField, function() {
             indicator: 'blue'
         });
     }
+    
+    // Re-setup filters for all rows
+    setTimeout(() => {
+        setup_dealer_issue_type_filter();
+    }, 300);
 });
 
 // ==========================================
@@ -152,42 +347,24 @@ function setup_child_table_category_listener() {
             return;
         }
 
-        // Method 1: Listen to awesomplete-selectcomplete event (for Link fields)
         const grid_wrapper = $(child_table.grid.wrapper);
         
+        // Use only ONE event listener - awesomplete-selectcomplete is most reliable for Link fields
         grid_wrapper.on("awesomplete-selectcomplete", `[data-fieldname='${CONFIG.categoryField}']`, function(e) {
-            console.log("Category selected via awesomplete:", e);
-            const grid_row = $(this).closest(".grid-row").data("grid_row");
+            console.log("✅ Category selected via awesomplete");
+            
+            const $target = $(e.target);
+            const grid_row = $target.closest(".grid-row").data("grid_row");
+            
             if (grid_row && grid_row.doc) {
+                // Use setTimeout with debouncing to prevent multiple calls
                 setTimeout(() => {
                     update_subcategories_for_row(grid_row);
                 }, 300);
             }
         });
 
-        // Method 2: Listen to blur event (backup method)
-        grid_wrapper.on("blur", `[data-fieldname='${CONFIG.categoryField}'] input`, function() {
-            console.log("Category field blur event");
-            const grid_row = $(this).closest(".grid-row").data("grid_row");
-            if (grid_row && grid_row.doc && grid_row.doc[CONFIG.categoryField]) {
-                setTimeout(() => {
-                    update_subcategories_for_row(grid_row);
-                }, 300);
-            }
-        });
-
-        // Method 3: Direct change listener
-        grid_wrapper.on("change", `[data-fieldname='${CONFIG.categoryField}'] input`, function() {
-            console.log("Category field change event");
-            const grid_row = $(this).closest(".grid-row").data("grid_row");
-            if (grid_row && grid_row.doc && grid_row.doc[CONFIG.categoryField]) {
-                setTimeout(() => {
-                    update_subcategories_for_row(grid_row);
-                }, 300);
-            }
-        });
-
-        console.log("Child table category listener attached (Link field mode)");
+        console.log("✅ Child table category listener attached (Link field mode)");
     }, 1000);
 }
 
@@ -196,25 +373,36 @@ function setup_child_table_category_listener() {
 // ==========================================
 function update_subcategories_for_row(grid_row) {
     if (!grid_row || !grid_row.doc) {
-        console.warn("Invalid grid row");
+        console.warn("❌ Invalid grid row");
         return;
     }
 
-    const selected_category = grid_row.doc[CONFIG.categoryField];
-    const dealer_issue_type = frappe.web_form.get_value(CONFIG.dealerIssueTypeField);
+    const selected_category_name = grid_row.doc[CONFIG.categoryField];
+    const row_id = grid_row.doc.name || grid_row.doc.idx;
     
-    console.log("Updating subcategories for:", {
-        category: selected_category,
-        issueType: dealer_issue_type
+    // Create unique key for this row update
+    const update_key = `${row_id}_${selected_category_name}`;
+    
+    // Check if already updating this row
+    if (updating_rows.has(update_key)) {
+        console.log("⏭️ Skipping duplicate update for:", update_key);
+        return;
+    }
+
+    console.log("🔍 Updating subcategories for:", {
+        categoryName: selected_category_name,
+        rowId: row_id
     });
 
-    if (!selected_category) {
-        console.log("No category selected");
+    if (!selected_category_name) {
+        console.log("⚠️ No category selected");
         return;
     }
 
+    // Check if dealer issue type is selected
+    const dealer_issue_type = frappe.web_form.get_value(CONFIG.dealerIssueTypeField);
     if (!dealer_issue_type) {
-        console.warn("No dealer issue type selected");
+        console.warn("⚠️ No dealer issue type selected");
         frappe.msgprint({
             title: 'Warning',
             message: 'Please select Dealer Issue Type first.',
@@ -223,21 +411,57 @@ function update_subcategories_for_row(grid_row) {
         return;
     }
 
+    // Mark this row as being updated
+    updating_rows.add(update_key);
+
+    // First, fetch the full document to get the technical_issue_category value
+    frappe.call({
+        method: 'frappe.client.get',
+        args: {
+            doctype: CONFIG.mappingDoctype,
+            name: selected_category_name
+        },
+        callback: function(r) {
+            console.log("📄 Category document fetched:", r.message);
+            
+            if (r.message && r.message.technical_issue_category) {
+                const category_value = r.message.technical_issue_category;
+                console.log("📌 Category value:", category_value);
+                
+                // Now fetch all mappings with this category
+                fetch_subcategories_by_category(grid_row, category_value, dealer_issue_type, update_key);
+            } else {
+                console.error("❌ Could not fetch category document or technical_issue_category field is missing");
+                // Remove from updating set
+                updating_rows.delete(update_key);
+            }
+        },
+        error: function(err) {
+            console.error("❌ Error fetching category document:", err);
+            // Remove from updating set
+            updating_rows.delete(update_key);
+        }
+    });
+}
+
+// ==========================================
+// Fetch Subcategories by Category Value
+// ==========================================
+function fetch_subcategories_by_category(grid_row, category_value, dealer_issue_type, update_key) {
     frappe.call({
         method: 'drivex.api.public_list.public_get_list',
         args: {
             doctype: CONFIG.mappingDoctype,
             fields: ['technical_issue_sub_category'],
             filters: [
-                ['dealer_issue_type', '=', dealer_issue_type],
-                ['name', '=', selected_category], // 👈 Since category is a Link, use 'name'
+                ['technical_issue_category', '=', category_value],
                 ['technical_issue_sub_category', '!=', '']
             ],
             order_by: 'technical_issue_sub_category asc',
             limit_page_length: 2000
         },
         callback: function (r) {
-            console.log("Subcategory API response:", r);
+            console.log("📊 Subcategory API response:", r);
             
             if (r.message && r.message.length > 0) {
                 let unique_subcategories = [...new Set(r.message.map(d => d.technical_issue_sub_category))].filter(Boolean);
@@ -254,23 +478,22 @@ function update_subcategories_for_row(grid_row) {
                 grid_row.doc[CONFIG.subCategoryField] = '';
                 grid_row.refresh_field(CONFIG.subCategoryField);
                 
-                console.log(`Updated subcategories for ${selected_category} (${dealer_issue_type}):`, unique_subcategories);
+                console.log(`✅ Updated subcategories for ${category_value}:`, unique_subcategories);
             } else {
                 const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
                 child_table.grid.update_docfield_property(CONFIG.subCategoryField, 'options', '');
                 grid_row.doc[CONFIG.subCategoryField] = '';
                 grid_row.refresh_field(CONFIG.subCategoryField);
-                console.log(`No subcategories found for ${selected_category} (${dealer_issue_type})`);
-                
-                frappe.msgprint({
-                    title: 'Info',
-                    message: `No subcategories found for "${selected_category}"`,
-                    indicator: 'blue'
-                });
+                console.log(`⚠️ No subcategories found for ${category_value}`);
             }
+            
+            // Remove from updating set after completion
+            updating_rows.delete(update_key);
         },
         error: function(err) {
-            console.error("Error fetching subcategories:", err);
+            console.error("❌ Error fetching subcategories:", err);
+            // Remove from updating set
+            updating_rows.delete(update_key);
         }
     });
 }
