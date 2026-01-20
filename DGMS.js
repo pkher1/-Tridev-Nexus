@@ -8,10 +8,11 @@ const CONFIG = {
     subjectField: 'subject',
     hideSubject: false,
     prefix: 'Quality Issue',
+    dealerIssueTypeField: 'custom_dealer_issue_type',
     childTableField: 'custom_technical_issue_categories',
     categoryField: 'technical_issue_category',
     subCategoryField: 'technical_issue_sub_category',
-    photoField: 'photovideo_evidance', // Match the fieldname from your doctype
+    photoField: 'photovideo_evidance',
     mappingDoctype: 'Technical Issue Category Mapping',
     attachFields: ['custom_image_1', 'custom_image_2', 'custom_image_3']
 };
@@ -79,7 +80,6 @@ frappe.web_form.after_load = () => {
     }
 
     generateSubject();
-    load_technical_issue_categories();
     setup_child_table_category_listener();
     make_child_table_fields_mandatory();
 };
@@ -123,37 +123,26 @@ function generateSubject() {
 }
 
 // ==========================================
-// Load Technical Issue Categories
+// Watch Dealer Issue Type Changes
 // ==========================================
-function load_technical_issue_categories() {
-    frappe.call({
-        method: 'drivex.api.public_list.public_get_list',
-        args: {
-            doctype: CONFIG.mappingDoctype,
-            fields: ['technical_issue_category'],
-            filters: [['technical_issue_category', '!=', '']],
-            order_by: 'technical_issue_category asc',
-            limit_page_length: 2000
-        },
-        callback: function (r) {
-            if (r.message) {
-                let unique_categories = [...new Set(r.message.map(d => d.technical_issue_category))].filter(Boolean);
-                let category_options = ['', ...unique_categories].join('\n');
-                
-                frappe.web_form.fields_dict[CONFIG.childTableField].grid.update_docfield_property(
-                    CONFIG.categoryField,
-                    'options',
-                    category_options
-                );
-
-                console.log("Loaded Categories:", unique_categories);
-            }
-        }
-    });
-}
+frappe.web_form.on(CONFIG.dealerIssueTypeField, function() {
+    console.log("Dealer Issue Type changed");
+    
+    // Clear existing child table rows when issue type changes
+    const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
+    if (child_table && child_table.grid) {
+        child_table.grid.df.data = [];
+        child_table.grid.refresh();
+        frappe.msgprint({
+            title: 'Info',
+            message: 'Issue Categories have been cleared. Please add new categories based on selected Issue Type.',
+            indicator: 'blue'
+        });
+    }
+});
 
 // ==========================================
-// Setup Dynamic Subcategory Updates
+// Setup Dynamic Subcategory Updates (For Link Field)
 // ==========================================
 function setup_child_table_category_listener() {
     setTimeout(() => {
@@ -163,50 +152,127 @@ function setup_child_table_category_listener() {
             return;
         }
 
+        // Method 1: Listen to awesomplete-selectcomplete event (for Link fields)
         const grid_wrapper = $(child_table.grid.wrapper);
-
-        grid_wrapper.on("change", `[data-fieldname='${CONFIG.categoryField}'] select, [data-fieldname='${CONFIG.categoryField}'] input`, function () {
+        
+        grid_wrapper.on("awesomplete-selectcomplete", `[data-fieldname='${CONFIG.categoryField}']`, function(e) {
+            console.log("Category selected via awesomplete:", e);
             const grid_row = $(this).closest(".grid-row").data("grid_row");
-            if (!grid_row || !grid_row.doc) return;
-
-            const selected_category = grid_row.doc[CONFIG.categoryField];
-            if (!selected_category) return;
-
-            frappe.call({
-                method: 'drivex.api.public_list.public_get_list',
-                args: {
-                    doctype: CONFIG.mappingDoctype,
-                    fields: ['technical_issue_sub_category'],
-                    filters: [
-                        ['technical_issue_category', '=', selected_category],
-                        ['technical_issue_sub_category', '!=', '']
-                    ],
-                    order_by: 'technical_issue_sub_category asc',
-                    limit_page_length: 2000
-                },
-                callback: function (r) {
-                    if (r.message && r.message.length > 0) {
-                        let unique_subcategories = [...new Set(r.message.map(d => d.technical_issue_sub_category))].filter(Boolean);
-                        let subcategory_options = ['', ...unique_subcategories].join('\n');
-
-                        child_table.grid.update_docfield_property(
-                            CONFIG.subCategoryField,
-                            'options',
-                            subcategory_options
-                        );
-
-                        grid_row.refresh_field(CONFIG.subCategoryField);
-                        console.log(`Updated subcategories for ${selected_category}:`, unique_subcategories);
-                    } else {
-                        child_table.grid.update_docfield_property(CONFIG.subCategoryField, 'options', '');
-                        grid_row.refresh_field(CONFIG.subCategoryField);
-                    }
-                }
-            });
+            if (grid_row && grid_row.doc) {
+                setTimeout(() => {
+                    update_subcategories_for_row(grid_row);
+                }, 300);
+            }
         });
 
-        console.log("Child table category listener attached");
-    }, 800);
+        // Method 2: Listen to blur event (backup method)
+        grid_wrapper.on("blur", `[data-fieldname='${CONFIG.categoryField}'] input`, function() {
+            console.log("Category field blur event");
+            const grid_row = $(this).closest(".grid-row").data("grid_row");
+            if (grid_row && grid_row.doc && grid_row.doc[CONFIG.categoryField]) {
+                setTimeout(() => {
+                    update_subcategories_for_row(grid_row);
+                }, 300);
+            }
+        });
+
+        // Method 3: Direct change listener
+        grid_wrapper.on("change", `[data-fieldname='${CONFIG.categoryField}'] input`, function() {
+            console.log("Category field change event");
+            const grid_row = $(this).closest(".grid-row").data("grid_row");
+            if (grid_row && grid_row.doc && grid_row.doc[CONFIG.categoryField]) {
+                setTimeout(() => {
+                    update_subcategories_for_row(grid_row);
+                }, 300);
+            }
+        });
+
+        console.log("Child table category listener attached (Link field mode)");
+    }, 1000);
+}
+
+// ==========================================
+// Update Subcategories for a Grid Row
+// ==========================================
+function update_subcategories_for_row(grid_row) {
+    if (!grid_row || !grid_row.doc) {
+        console.warn("Invalid grid row");
+        return;
+    }
+
+    const selected_category = grid_row.doc[CONFIG.categoryField];
+    const dealer_issue_type = frappe.web_form.get_value(CONFIG.dealerIssueTypeField);
+    
+    console.log("Updating subcategories for:", {
+        category: selected_category,
+        issueType: dealer_issue_type
+    });
+
+    if (!selected_category) {
+        console.log("No category selected");
+        return;
+    }
+
+    if (!dealer_issue_type) {
+        console.warn("No dealer issue type selected");
+        frappe.msgprint({
+            title: 'Warning',
+            message: 'Please select Dealer Issue Type first.',
+            indicator: 'orange'
+        });
+        return;
+    }
+
+    frappe.call({
+        method: 'drivex.api.public_list.public_get_list',
+        args: {
+            doctype: CONFIG.mappingDoctype,
+            fields: ['technical_issue_sub_category'],
+            filters: [
+                ['dealer_issue_type', '=', dealer_issue_type],
+                ['name', '=', selected_category], // 👈 Since category is a Link, use 'name'
+                ['technical_issue_sub_category', '!=', '']
+            ],
+            order_by: 'technical_issue_sub_category asc',
+            limit_page_length: 2000
+        },
+        callback: function (r) {
+            console.log("Subcategory API response:", r);
+            
+            if (r.message && r.message.length > 0) {
+                let unique_subcategories = [...new Set(r.message.map(d => d.technical_issue_sub_category))].filter(Boolean);
+                let subcategory_options = ['', ...unique_subcategories].join('\n');
+
+                const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
+                child_table.grid.update_docfield_property(
+                    CONFIG.subCategoryField,
+                    'options',
+                    subcategory_options
+                );
+
+                // Clear the current subcategory value
+                grid_row.doc[CONFIG.subCategoryField] = '';
+                grid_row.refresh_field(CONFIG.subCategoryField);
+                
+                console.log(`Updated subcategories for ${selected_category} (${dealer_issue_type}):`, unique_subcategories);
+            } else {
+                const child_table = frappe.web_form.fields_dict[CONFIG.childTableField];
+                child_table.grid.update_docfield_property(CONFIG.subCategoryField, 'options', '');
+                grid_row.doc[CONFIG.subCategoryField] = '';
+                grid_row.refresh_field(CONFIG.subCategoryField);
+                console.log(`No subcategories found for ${selected_category} (${dealer_issue_type})`);
+                
+                frappe.msgprint({
+                    title: 'Info',
+                    message: `No subcategories found for "${selected_category}"`,
+                    indicator: 'blue'
+                });
+            }
+        },
+        error: function(err) {
+            console.error("Error fetching subcategories:", err);
+        }
+    });
 }
 
 // ==========================================
@@ -220,6 +286,16 @@ frappe.web_form.validate = () => {
         frappe.msgprint({
             title: 'Missing Information',
             message: 'Subject could not be generated. Please fill in Dealer Name and Vehicle Registration Number.',
+            indicator: 'red'
+        });
+        return false;
+    }
+
+    // Check dealer issue type
+    if (!data[CONFIG.dealerIssueTypeField]) {
+        frappe.msgprint({
+            title: 'Missing Information',
+            message: 'Please select Dealer Issue Type.',
             indicator: 'red'
         });
         return false;
